@@ -1,13 +1,13 @@
 import { spawn } from "bun";
 import { watch } from "fs";
 
-// 端口
+// Port
 const port = Number(process.argv[2]) || 3000;
 
-// 配置路径（可以用环境变量覆盖）
+// Config path (can be overridden by environment variable)
 const configPath = process.env.AGENT_CONFIG || "./config.json";
 
-// 加载配置
+// Load config
 async function loadConfig(): Promise<any> {
   try {
     const content = await Bun.file(configPath).text();
@@ -23,13 +23,13 @@ if (!config) {
   process.exit(1);
 }
 
-// 防抖定时器，避免频繁触发
+// Debounce timer to avoid frequent triggers
 let reloadTimer: ReturnType<typeof setTimeout> | null = null;
 
-// 监听配置文件变更
+// Watch config file for changes
 watch(configPath, { persistent: true }, async (eventType) => {
   if (eventType === "change") {
-    // 防抖：延迟 100ms 后重新加载，避免文件写入过程中的多次触发
+    // Debounce: delay 100ms before reloading to avoid multiple triggers during file write
     if (reloadTimer) {
       clearTimeout(reloadTimer);
     }
@@ -49,7 +49,7 @@ watch(configPath, { persistent: true }, async (eventType) => {
 
 console.log(`👀 Watching config file: ${configPath}`);
 
-// 工具：执行 action
+// Execute action
 async function runAction(actionName: string, payload: any) {
   const action = config.actions?.[actionName];
   if (!action) {
@@ -74,16 +74,17 @@ async function runAction(actionName: string, payload: any) {
     proc.kill()
   }, timeout * 1000);
 
+  // Ensure the process has fully exited before reading stdout/stderr
+  const exitCode = await proc.exited;
   const stdout = await new Response(proc.stdout).text();
   const stderr = await new Response(proc.stderr).text();
-  const exitCode = await proc.exited;
 
   clearTimeout(timer);
 
   return { ok: exitCode === 0, exitCode, stdout, stderr };
 }
 
-// 路由处理：GET /hook
+// Route handler: GET /hook
 async function handleGetHook(req: Request) {
   const url = new URL(req.url);
   const action = url.searchParams.get("action");
@@ -94,7 +95,7 @@ async function handleGetHook(req: Request) {
   return Response.json(result, { status: result.ok ? 200 : 500 });
 }
 
-// 路由处理：POST /hook
+// Route handler: POST /hook
 async function handlePostHook(req: Request) {
   let body: any = {};
   try {
@@ -108,7 +109,7 @@ async function handlePostHook(req: Request) {
   return Response.json(result, { status: result.ok ? 200 : 500 });
 }
 
-// Bun serve 启动
+// Start Bun server
 Bun.serve({
   port,
   routes: {
