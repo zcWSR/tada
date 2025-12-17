@@ -1,0 +1,9 @@
+{
+  "actions": {
+    "deploy": {
+      "script": "deploy.sh",
+      "cwd": "/opt/app",
+      "timeout": 300
+    }
+  }
+}
