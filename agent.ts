@@ -1,11 +1,11 @@
 import { spawn } from "bun";
 import { watch } from "fs";
+import { resolve } from "path";
 
-// Port
-const port = Number(process.argv[2]) || 3000;
-
-// Config path (can be overridden by environment variable)
-const configPath = process.env.AGENT_CONFIG || "./config.json";
+// Parse command line arguments
+const args = process.argv.slice(2);
+const port = Number(args.find(arg => arg.startsWith("--port="))?.split("=")[1] || 3000);
+const configPath = args.find(arg => arg.startsWith("--config="))?.split("=")[1] || resolve(import.meta.dir, "config.json");
 
 // Load config
 async function loadConfig(): Promise<any> {
@@ -56,10 +56,33 @@ async function runAction(actionName: string, payload: any) {
     return { ok: false, error: `Unknown action: ${actionName}` };
   }
 
-  const { script, cwd, timeout = 300 } = action;
+  const { script, command, cwd, timeout = 300 } = action;
+
+  // Validate: must have either script or command, but not both
+  if (!script && !command) {
+    return { ok: false, error: `Action ${actionName} must have either 'script' or 'command'` };
+  }
+  if (script && command) {
+    return { ok: false, error: `Action ${actionName} cannot have both 'script' and 'command'` };
+  }
+
+  // Determine command to execute
+  let cmd: string[];
+  if (command) {
+    if (Array.isArray(command)) {
+      // If command is an array, execute directly
+      cmd = command;
+    } else {
+      // If command is a string, execute through shell to support operators like &&, ;, etc.
+      cmd = ["sh", "-c", command];
+    }
+  } else {
+    // Default to script execution
+    cmd = ["sh", script];
+  }
 
   const proc = spawn({
-    cmd: ["sh", script],
+    cmd,
     cwd,
     env: {
       ...process.env,
