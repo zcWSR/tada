@@ -21,6 +21,9 @@ bun run tada.ts --docker-sock=/var/run/docker.sock
 `config.toml`:
 
 ```toml
+# Bearer token for authorization (optional, no auth if omitted)
+# token = "your-secret-token"
+
 # Docker configuration (optional, remove this section if not needed)
 [docker]
 sock = "/var/run/docker.sock"
@@ -92,15 +95,28 @@ Operations:
 
 The config file is watched for changes. When modified, the new config is loaded automatically without restarting the service. If the new config has errors, the old config is kept.
 
+### Authorization
+
+If `token` is set in config, all requests must include the `Authorization` header:
+
+```
+Authorization: Bearer your-secret-token
+```
+
+Unauthorized requests receive a `401` response. If `token` is not set, no auth is required.
+
 ### API
 
 #### `GET /action`
 
 Trigger an action by name.
 
-```
-GET /action?name=deploy
-GET /action?name=build&branch=main
+```bash
+curl "http://localhost:3000/action?name=deploy"
+curl "http://localhost:3000/action?name=build&branch=main"
+
+# with authorization
+curl -H "Authorization: Bearer your-secret-token" "http://localhost:3000/action?name=deploy"
 ```
 
 All query parameters (except `name`) are passed to the action as the `PAYLOAD` environment variable (JSON stringified).
@@ -120,9 +136,12 @@ Response:
 
 Trigger a Docker operation on an allowed container.
 
-```
-GET /docker?name=my-nginx&action=restart
-GET /docker?name=my-nginx&action=update
+```bash
+curl "http://localhost:3000/docker?name=my-nginx&action=restart"
+curl "http://localhost:3000/docker?name=my-nginx&action=update"
+
+# with authorization
+curl -H "Authorization: Bearer your-secret-token" "http://localhost:3000/docker?name=japari-node&action=update"
 ```
 
 Response:

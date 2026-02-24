@@ -89,11 +89,23 @@ async function handleDocker(req: Request) {
   return Response.json(result, { status: result.ok ? 200 : 500 });
 }
 
+function authorize(req: Request): Response | null {
+  if (!config.token) return null;
+  const header = req.headers.get("authorization");
+  if (header === `Bearer ${config.token}`) return null;
+  return Response.json({ ok: false, error: "Unauthorized" }, { status: 401 });
+}
+
+function withAuth(handler: (req: Request) => Promise<Response>) {
+  return (req: Request) => authorize(req) ?? handler(req);
+}
+
 Bun.serve({
   port,
   routes: {
-    "/action": { GET: handleAction },
-    "/docker": { GET: handleDocker },
+    "/": Response.json({ repo: "https://github.com/zcWSR/tada" }),
+    "/action": { GET: withAuth(handleAction) },
+    "/docker": { GET: withAuth(handleDocker) },
   },
 });
 

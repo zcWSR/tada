@@ -1,3 +1,6 @@
+# Bearer token for authorization (optional, no auth if omitted)
+# token = "your-secret-token"
+
 # Docker configuration (optional, remove this section if not needed)
 [docker]
 sock = "/var/run/docker.sock"

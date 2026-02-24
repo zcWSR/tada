@@ -17,6 +17,7 @@ export type Container = {
 };
 
 export type Config = {
+  token?: string;
   actions?: Action[];
   docker?: {
     sock?: string;

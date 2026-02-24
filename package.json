@@ -1,6 +1,10 @@
 {
   "name": "tada",
   "private": true,
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/zcWSR/tada"
+  },
   "scripts": {
     "install-service": "bun run install-service.ts"
   },
