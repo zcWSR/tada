@@ -1,0 +1,34 @@
+# Docker configuration (optional, remove this section if not needed)
+[docker]
+sock = "/var/run/docker.sock"
+
+# Standalone container
+[[docker.containers]]
+name = "my-nginx"
+allow = ["restart", "update"]
+
+# Compose container
+[[docker.containers]]
+name = "japari-node"
+allow = ["restart", "update"]
+composeFile = "/opt/japari/docker-compose.yml"
+service = "node"  # compose service name (defaults to name if omitted)
+
+# Actions
+[[actions]]
+name = "deploy"
+script = "deploy.sh"
+cwd = "/opt/app"
+timeout = 300
+
+[[actions]]
+name = "restart"
+command = ["systemctl", "restart", "myapp"]
+cwd = "/opt/app"
+timeout = 60
+
+[[actions]]
+name = "build"
+command = "cd /opt/app && npm install && npm run build"
+cwd = "/opt/app"
+timeout = 300

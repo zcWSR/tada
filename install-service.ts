@@ -14,11 +14,10 @@ const skipStart = args.includes("--skip-start");
 
 // Get project directory (where this script is located)
 const projectDir = import.meta.dir;
-const agentTsPath = resolve(projectDir, "agent.ts");
+const tadaTsPath = resolve(projectDir, "tada.ts");
 
-// Check if required files exist
-if (!existsSync(agentTsPath)) {
-  console.error(`❌ Error: agent.ts not found (${agentTsPath})`);
+if (!existsSync(tadaTsPath)) {
+  console.error(`❌ Error: tada.ts not found (${tadaTsPath})`);
   process.exit(1);
 }
 
@@ -44,7 +43,7 @@ try {
 }
 
 // Determine config file path
-const finalConfigPath = configPath || resolve(projectDir, "config.json");
+const finalConfigPath = configPath || resolve(projectDir, "config.toml");
 
 // Generate systemd service file content
 const serviceContent = `[Unit]
@@ -56,7 +55,7 @@ Wants=network-online.target
 Type=simple
 User=${user}
 WorkingDirectory=${projectDir}
-ExecStart=${bunPath} run ${agentTsPath} --port=${port} --config=${finalConfigPath}
+ExecStart=${bunPath} run ${tadaTsPath} --port=${port} --config=${finalConfigPath}
 Restart=always
 RestartSec=5
 
